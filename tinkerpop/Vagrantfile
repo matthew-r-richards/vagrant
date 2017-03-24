@@ -8,6 +8,7 @@ VAGRANTFILE_API_VERSION = "2"
 # Create box
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box = "box-cutter/ubuntu1404-desktop"
+    config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
 
     config.vm.define "tinkerpop" do |tinkerpop|
         tinkerpop.vm.hostname = "tinkerpop"
