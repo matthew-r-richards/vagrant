@@ -3,12 +3,20 @@
 # Install Java
 sudo add-apt-repository -y ppa:openjdk-r/ppa
 sudo apt-get update
-sudo apt-get -y install openjdk-8-jdk
+sudo apt-get -y install openjdk-8-jdk maven git
 
-# Install Apache Tinkerpop
-wget -q http://mirror.switch.ch/mirror/apache/dist/tinkerpop/3.2.4/apache-tinkerpop-gremlin-console-3.2.4-bin.zip
-unzip -y apache-tinkerpop-gremlin-console-3.2.4-bin.zip
-rm apache-tinkerpop-gremlin-console-3.2.4-bin.zip
+# Place zip file in /vagrant shared folder if you want to avoid the clone+make process
+#cp /vagrant/janusgraph-0.1.0-SNAPSHOT-hadoop2.zip ~/janusgraph-0.1.0-SNAPSHOT-hadoop2.zip
+
+# Install JanusGraph
+git clone https://github.com/JanusGraph/janusgraph.git ~/janusgraph-src
+cd ~/janusgraph-src
+mvn clean install -Pjanusgraph-release -Dgpg.skip=true -DskipTests=true
+mv janusgraph-dist/janusgraph-dist-hadoop-2/target/janusgraph-0.1.0-SNAPSHOT-hadoop2.zip ~/janusgraph-0.1.0-SNAPSHOT-hadoop2.zip
+rm -r ~/janusgraph-src
+
+unzip -o janusgraph-0.1.0-SNAPSHOT-hadoop2.zip -d ~/janusgraph
+rm janusgraph-0.1.0-SNAPSHOT-hadoop2.zip
 
 # Set up Java
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
