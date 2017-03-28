@@ -8,16 +8,23 @@ VAGRANTFILE_API_VERSION = "2"
 # Create box
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box = "box-cutter/ubuntu1404-desktop"
+    config.vm.network "forwarded_port", guest: 22, host: 2222, id: "ssh", disabled: true
     config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
 
     config.vm.define "tinkerpop" do |tinkerpop|
         tinkerpop.vm.hostname = "tinkerpop"
+
+        # SSH
+        tinkerpop.vm.network "forwarded_port", guest: 22, host: 5022
+
+        # Gremlin server port
+        tinkerpop.vm.network "forwarded_port", guest: 8182, host: 8182
         
         # VirtualBox configuration
         tinkerpop.vm.provider "virtualbox" do |vb|
             vb.name = "tinkerpop.vm"
             vb.gui = true
-            vb.memory = 1024
+            vb.memory = 4096
         end
 
         # Provisioning via shell script
