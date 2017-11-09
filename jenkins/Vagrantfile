@@ -1,0 +1,50 @@
+# -*- mode: ruby -*-
+# # vi: set ft=ruby :
+ 
+# Specify minimum Vagrant version and Vagrant API version
+Vagrant.require_version ">= 1.6.0"
+VAGRANTFILE_API_VERSION = "2"
+
+# Require JSON module
+require 'json'
+
+# Read JSON file with box details
+nodes = JSON.parse(File.read('nodes.json'))['nodes']
+
+# Create boxes
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+    # Iterate through entries in JSON file
+    nodes.each do |node|
+        node_name = node[0]
+        node_config = node[1]
+        config.vm.define node_name do |nodeConfig|
+            nodeConfig.vm.box = node_config['box']
+            nodeConfig.vm.hostname = node_name
+
+            nodeConfig.vm.network :private_network, ip: node_config['ip']
+
+            if node_name == 'dockerhost.vm'
+                # Expose the VM externally
+                nodeConfig.vm.network :forwarded_port, guest: 8080, host: 1234
+                nodeConfig.vm.network :forwarded_port, guest: 9000, host: 1235
+
+                # Shared folder for Jenkins docker config
+                nodeConfig.vm.synced_folder "./docker/", "/docker"
+
+                # Provision docker
+                nodeConfig.vm.provision "docker", images: [
+                    "jenkins/jenkins:alpine",
+                    "portainer/portainer"
+                ]
+            end
+
+            nodeConfig.vm.provider "virtualbox" do |vb|
+                vb.name = node_name
+                vb.memory = node_config['ram']
+            end
+
+            # Provisioning via bootstrap script
+            nodeConfig.vm.provision :shell, :path => node_config['bootstrap']
+        end # config.vm
+    end # nodes.each
+end # Vagrant.configure
